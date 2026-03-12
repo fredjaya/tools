@@ -76,6 +76,7 @@ class ConfigsCreateApp(App[utils.ConfigsCreateConfig]):
     CONFIG_TYPE = None
     NFCORE_CONFIG = True
     INFRA_ISHPC = False
+    INFRA_USES_MODULES = False
     PIPE_CONF_NAMED = False
     PIPE_CONF_LABELLED = False
     PIPE_CONF_HPC = False
