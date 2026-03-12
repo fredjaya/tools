@@ -12,7 +12,8 @@ from nf_core.configs.create.utils import (
     TextInput,
     ConfigsCreateConfig,
     init_context,
-    SUPPORTED_CONTAINERS
+    SUPPORTED_CONTAINERS,
+    detect_module_system,
 )
 from nf_core.utils import add_hide_class, remove_hide_class
 
@@ -108,7 +109,10 @@ class FinalInfraDetails(Screen):
 
     def _get_container_systems(self) -> list[str]:
         """Get the available container systems to use for software handling."""
-        module_system_used = self._detect_module_system()
+        # Use result cached by HpcCustomisation (HPC path), or detect now (local path)
+        if not self.parent.INFRA_ISHPC:
+            self.parent.INFRA_USES_MODULES = detect_module_system()
+        module_system_used = self.parent.INFRA_USES_MODULES
         container_systems = SUPPORTED_CONTAINERS
         available_systems = []
         if module_system_used:
@@ -130,16 +134,6 @@ class FinalInfraDetails(Screen):
                 except subprocess.CalledProcessError:
                     continue
         return available_systems
-
-    def _detect_module_system(self) -> bool:
-        """Detect if a module system is used"""
-        try:
-            subprocess.check_output(["module", "--version"])
-        except FileNotFoundError:
-            return False
-        except subprocess.CalledProcessError:
-            return False
-        return True
 
     def _get_set_directory(self, dir: str) -> Optional[str]:
         """Get the available cache directories"""
@@ -182,7 +176,7 @@ class FinalInfraDetails(Screen):
                 text_input.query_one(".validation_msg").update("")
         delete_work_switch = self.query_one("#toggle-delete-work")
         new_config['delete_work_dir'] = delete_work_switch.value
-        new_config['module'] = self._detect_module_system()
+        new_config['module'] = self.parent.INFRA_USES_MODULES
         try:
             with init_context(self.parent.get_context()):
                 # First, validate the new config data

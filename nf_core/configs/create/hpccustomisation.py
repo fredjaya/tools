@@ -12,7 +12,8 @@ from textual import on
 from nf_core.configs.create.utils import (
     TextInput,
     init_context,
-    ConfigsCreateConfig
+    ConfigsCreateConfig,
+    detect_module_system,
 )
 
 markdown_intro = """
@@ -29,7 +30,8 @@ class HpcCustomisation(Screen):
         scheduler = self._get_scheduler()
         queues = self._get_queues(scheduler)
         default_queue = self._get_default_queue(scheduler)
-        module_system_used = self._detect_module_system()
+        self.parent.INFRA_USES_MODULES = detect_module_system()
+        module_system_used = self.parent.INFRA_USES_MODULES
         yield Markdown(markdown_intro)
         with Horizontal():
             yield TextInput(
@@ -159,16 +161,6 @@ class HpcCustomisation(Screen):
             k, v = [token.strip() for token in line.split("=", 1)]
             config[k] = v
         return config
-
-    def _detect_module_system(self) -> bool:
-        """Detect if a module system is used"""
-        try:
-            subprocess.check_output(["module", "--version"])
-        except FileNotFoundError:
-            return False
-        except subprocess.CalledProcessError:
-            return False
-        return True
 
     @on(Button.Pressed, "#toconfiguration")
     def on_button_pressed(self, event: Button.Pressed) -> None:

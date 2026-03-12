@@ -1,6 +1,7 @@
 """Config creation specific functions and classes"""
 
 import re
+import subprocess
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -35,6 +36,17 @@ INFRA_ISHPC_GLOBAL: bool = False
 _PATH_PATTERN = re.compile(r"(\/|~\/|~$|\$\{?\w+\}?)(.*)")
 # Used by finalinfradetails as it already imports create.utils
 SUPPORTED_CONTAINERS = ["singularity", "docker", "apptainer", "charliecloud", "podman", "sarus", "shifter"]
+INFRA_USES_MODULES: bool = False
+
+
+def detect_module_system() -> bool:
+    """Detect if a module system (e.g. Lmod, Environment Modules) is available."""
+    try:
+        subprocess.check_output(["module", "--version"], stderr=subprocess.DEVNULL)
+        return True
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
+
 
 class ConfigsCreateConfig(BaseModel):
     """Pydantic model for the nf-core configs create config."""
