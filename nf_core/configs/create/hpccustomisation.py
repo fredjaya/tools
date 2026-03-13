@@ -30,7 +30,7 @@ class HpcCustomisation(Screen):
         scheduler = self._get_scheduler()
         queues = self._get_queues(scheduler)
         default_queue = self._get_default_queue(scheduler)
-        self.parent.INFRA_USES_MODULES = detect_module_system
+        self.parent.INFRA_USES_MODULES = detect_module_system()
         module_system_used = self.parent.INFRA_USES_MODULES
         yield Markdown(markdown_intro)
         with Horizontal():

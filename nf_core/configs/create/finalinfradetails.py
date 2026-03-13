@@ -1,6 +1,5 @@
 import os
 import subprocess
-from typing import Optional
 
 from textual import on
 from textual.app import ComposeResult
@@ -9,11 +8,11 @@ from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Markdown, Static, Switch
 
 from nf_core.configs.create.utils import (
-    TextInput,
-    ConfigsCreateConfig,
-    init_context,
     SUPPORTED_CONTAINERS,
+    ConfigsCreateConfig,
+    TextInput,
     detect_module_system,
+    init_context,
 )
 from nf_core.utils import add_hide_class, remove_hide_class
 
@@ -135,18 +134,17 @@ class FinalInfraDetails(Screen):
         if not self.parent.INFRA_ISHPC:
             self.parent.INFRA_USES_MODULES = detect_module_system()
         module_system_used = self.parent.INFRA_USES_MODULES
-        container_systems = SUPPORTED_CONTAINERS
         available_systems = []
         if module_system_used:
-            for system in container_systems:
+            for system in SUPPORTED_CONTAINERS:
                 try:
-                    output = subprocess.check_output(["module", "avail", "|", "grep", system]).decode("utf-8")
+                    output = subprocess.check_output(f"module avail {system}", shell=True).decode("utf-8")
                     if output:
                         available_systems.append(system)
                 except subprocess.CalledProcessError:
                     continue
         else:
-            for system in container_systems:
+            for system in SUPPORTED_CONTAINERS:
                 try:
                     output = subprocess.check_output([system]).decode("utf-8")
                     if output:
@@ -157,7 +155,7 @@ class FinalInfraDetails(Screen):
                     continue
         return available_systems
 
-    def _get_set_directory(self, dir: str) -> Optional[str]:
+    def _get_set_directory(self, dir: str) -> str | None:
         """Get the available cache directories"""
         if dir:
             set_dir = os.environ.get(dir)

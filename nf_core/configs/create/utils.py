@@ -377,8 +377,23 @@ class ConfigsCreateConfig(BaseModel):
     
     @field_validator("module_system")
     @classmethod
-    def module_system(cls, v: str, info: ValidationInfo) -> str:
-        #TODO: placeholder validator until functionality is finished
+    def module_system_valid(cls, v: str, info: ValidationInfo) -> str:
+        """Validate a comma-separated list of module identifiers (no spaces).
+
+        Each module must start with a word character and contain only
+        word characters, hyphens, dots, and slashes.
+        """
+        context = info.context
+        if not context and context.get("uses_modules"):
+            return v
+        v = v.strip()
+        if v == "":
+            return v  # optional
+        if not re.match(r"^[\w][\w\-\.\/]*(,[\w][\w\-\.\/]*)*$", v):
+            raise ValueError(
+                "Must be a comma-separated list of module names with no spaces "
+                "(e.g. singularity/3.8.0,gcc/11.2.0)."
+            )
         return v
     
 
